@@ -33,24 +33,24 @@ const addAgent = (request, response) => {
     email,
     phone,
     bio = null,
-    url,
+      url,
     imgUrl = null,
-    agentHeaderId,
+      agentHeaderId,
     website = null,
   } = request.body
-  pool.query(
-    'INSERT INTO agents (firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-    [firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website],
-    () => {
-      response.status(201).json({ message: 'Agent added' })
-    }
-  )
+    pool.query(
+      'INSERT INTO agents (firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website],
+      () => {
+        response.status(201).json({ message: 'Agent added' })
+      }
+    )
 }
 
 const getAgent = (request, response) => {
   const { id } = request.params
   pool.query(
-    `SELECT * FROM agents where id = ${id} LIMIT 1`, (error, result, data) => {
+    `SELECT * FROM agents where id = ${id} LIMIT 1`, (error, result) => {
       if (error) {
         throw error
       }
@@ -59,13 +59,115 @@ const getAgent = (request, response) => {
     })
 }
 
-app
-  .route('/api/v1/agents')
-  .get(getAgents)
-  .post(addAgent)
+const deleteAgent = (request, response) => {
+  const { id } = request.params
+  pool.query(
+    `DELETE FROM agents WHERE id = ${id}`, (error, result) => {
+      if (error) {
+        throw error
+      }
+
+      response.status(200)
+    })
+}
+
+const updateAgent = (request, response) => {
+  const { id } = req.params
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    bio,
+    url,
+    imgUrl,
+    website
+  } = req.body
+
+  const query = `UPDATE agents SET firstName=${firstName} lastName=${lastName} email=${email} phone=${phone} bio=${bio} url=${url} imgUrl=${imgUrl} website=${website} WHERE id = ${id}`
+  pool.query(query, (error, result) => {
+    if (error) {
+      throw error
+    }
+
+    response.status(200)
+  })
+}
+
+const getServices = (request, response) => {
+  pool.query('SELECT * FROM services', (error, result) => {
+    if (error) {
+      throw error
+    }
+
+    response.status(200).json(result.rows)
+  })
+}
+
+const addService = (request, response) => {
+  const {
+    name,
+    url,
+    phone,
+    category
+  } = request.body
+    pool.query(
+      'INSERT INTO services (name, url, phone, category) VALUES ($1, $2, $3, $4)',
+      [name, url, phone, category],
+      () => {
+        response.status(201).json({ message: 'Service added' })
+      }
+    )
+}
+
+const updateService = (request, response) => {
+  const { id } = req.params
+  const {
+    name,
+    url,
+    phone,
+    category
+  } = req.body
+
+  const query = `UPDATE services SET name=${name} url=${url} phone=${phone} category=${category} WHERE id = ${id}`
+  pool.query(query, (error, result) => {
+    if (error) {
+      throw error
+    }
+
+    response.status(200)
+  })
+}
+
+const deleteService = (request, response) => {
+  const { id } = request.params
+  pool.query(
+    `DELETE FROM services WHERE id = ${id}`, (error, result) => {
+      if (error) {
+        throw error
+      }
+
+      response.status(200)
+    })
+}
 
 app
-  .route('/api/v1/agents/:id')
-  .get(getAgent)
+.route('/api/v1/agents')
+.get(getAgents)
+.post(addAgent)
+
+app
+.route('/api/v1/agents/:id')
+.get(getAgent)
+.put(updateAgent)
+.delete(deleteAgent)
+
+app.route('/api/v1/services')
+   .get(getServices)
+   .post(addService)
+
+app.route('/api/v1/services/:id')
+  .put(updateService)
+  .delete(deleteService)
 
 module.exports = app
