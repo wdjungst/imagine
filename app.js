@@ -26,8 +26,46 @@ const getAgents = (request, response) => {
   })
 }
 
+const addAgent = (request, response) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    bio = null,
+    url,
+    imgUrl = null,
+    agentHeaderId,
+    website = null,
+  } = request.body
+  pool.query(
+    'INSERT INTO agents (firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+    [firstName, lastName, email, phone, bio, url, imgUrl, agentHeaderId, website],
+    () => {
+      response.status(201).json({ message: 'Agent added' })
+    }
+  )
+}
+
+const getAgent = (request, response) => {
+  const { id } = request.params
+  pool.query(
+    `SELECT * FROM agents where id = ${id} LIMIT 1`, (error, result, data) => {
+      if (error) {
+        throw error
+      }
+
+      response.status(200).json(result ? result.rows[0] : {})
+    })
+}
+
 app
   .route('/api/v1/agents')
   .get(getAgents)
+  .post(addAgent)
+
+app
+  .route('/api/v1/agents/:id')
+  .get(getAgent)
 
 module.exports = app
